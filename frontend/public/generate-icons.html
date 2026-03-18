@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Icons</title>
+</head>
+<body>
+    <h2>Генерация иконок для PWA</h2>
+    <p>Нажмите на кнопку ниже для генерации всех необходимых иконок</p>
+    <button onclick="generateAllIcons()">Сгенерировать все иконки</button>
+    <div id="status"></div>
+    <canvas id="canvas" style="display:none;"></canvas>
+    
+    <script>
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <rect width="512" height="512" fill="#0d0d14"/>
+            <text x="256" y="320" font-family="Arial, sans-serif" font-size="240" font-weight="bold" text-anchor="middle" fill="#ffffff">M</text>
+            <text x="256" y="380" font-family="Arial, sans-serif" font-size="60" text-anchor="middle" fill="#888">Market</text>
+        </svg>`;
+        
+        const sizes = [16, 32, 70, 72, 96, 128, 144, 150, 152, 192, 310, 384, 512];
+        
+        function createIcon(size) {
+            return new Promise((resolve) => {
+                const canvas = document.getElementById('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                const img = new Image();
+                const svgBlob = new Blob([svg], {type: 'image/svg+xml;charset=utf-8'});
+                const url = URL.createObjectURL(svgBlob);
+                
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, size, size);
+                    canvas.toBlob(function(blob) {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'icon-' + size + 'x' + size + '.png';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        resolve();
+                    });
+                };
+                img.src = url;
+            });
+        }
+        
+        async function generateAllIcons() {
+            const status = document.getElementById('status');
+            status.innerHTML = '<p>Генерация иконок...</p>';
+            
+            for (let i = 0; i < sizes.length; i++) {
+                const size = sizes[i];
+                status.innerHTML = `<p>Генерация иконки ${size}x${size}... (${i + 1}/${sizes.length})</p>`;
+                await createIcon(size);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            status.innerHTML = '<p style="color: green;">✅ Все иконки сгенерированы! Переместите их в папку public/</p>';
+        }
+    </script>
+</body>
+</html>

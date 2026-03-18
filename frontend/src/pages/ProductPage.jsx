@@ -1,0 +1,161 @@
+import React, { useState, useEffect } from 'react'
+import useMeta from '../hooks/useMeta'
+import { Package, Star, Eye, Heart, ShieldCheck, ShoppingCart } from '../components/Icon'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { api, useStore } from '../store'
+import toast from 'react-hot-toast'
+
+export default function ProductPage() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { user } = useStore()
+  const [product, setProduct] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [buying, setBuying]   = useState(false)
+
+  useMeta(product ? {
+    title: product.title,
+    description: `${product.title} за $${product.price}. Безопасная покупка через гарант на Minions Market.`,
+    keywords: `${product.title}, ${product.category}, купить`,
+  } : { title: 'Товар' })
+  const [imgIdx, setImgIdx]   = useState(0)
+
+  useEffect(() => {
+    api.get(`/products/${id}`).then(r => setProduct(r.data)).catch(() => navigate('/catalog')).finally(() => setLoading(false))
+  }, [id])
+
+  const buy = async () => {
+    if (!user) return navigate('/auth')
+    if (!window.confirm(`Купить "${product.title}" за $${product.price}? Средства будут заморожены до подтверждения получения.`)) return
+    setBuying(true)
+    try {
+      await api.post('/deals', { productId: product._id || product.id })
+      toast.success('Сделка создана!')
+      navigate('/deals')
+    } catch(e) { toast.error(e.response?.data?.error||'Ошибка') }
+    setBuying(false)
+  }
+
+  if (loading) return (
+    <div style={{ maxWidth:900, margin:'0 auto', padding:'24px 12px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24 }}>
+        <div className="skel" style={{ height:380 }}/>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <div className="skel" style={{ height:40 }}/>
+          <div className="skel" style={{ height:24 }}/>
+          <div className="skel" style={{ height:80 }}/>
+        </div>
+      </div>
+    </div>
+  )
+
+  if (!product) return null
+  const seller = product.seller
+  const isMine = user && String(seller?._id || seller?.id) === (user._id || user.id)
+
+  return (
+    <div style={{ maxWidth:940, margin:'0 auto', padding:'24px 12px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:20, fontSize:13, color:'var(--t3)' }}>
+        <Link to="/">Главная</Link> <span>/</span>
+        <Link to="/catalog">Каталог</Link> <span>/</span>
+        <span style={{ color:'var(--t2)' }}>{product.title}</span>
+      </div>
+
+      <div className="split-2">
+        {/* Images */}
+        <div>
+          <div className="img-sheen img-sheen--active" style={{
+            height:360, borderRadius:22, overflow:'hidden', background:'var(--bg3)',
+            backgroundImage: product.images?.[imgIdx] ? `url(${product.images[imgIdx]})` : 'none',
+            backgroundSize:'cover', backgroundPosition:'center', marginBottom:10,
+            display:'flex', alignItems:'center', justifyContent:'center', fontSize:60, color:'var(--t4)'
+          }}>
+            {!product.images?.length && <Package size={64} strokeWidth={0.75} style={{opacity:0.25}}/>}
+          </div>
+          {product.images?.length > 1 && (
+            <div style={{ display:'flex', gap:8 }}>
+              {product.images.map((img,i) => (
+                <div key={i} onClick={() => setImgIdx(i)} style={{
+                  width:60, height:60, borderRadius:10, overflow:'hidden', cursor:'pointer',
+                  backgroundImage:`url(${img})`, backgroundSize:'cover', backgroundPosition:'center',
+                  border:`2px solid ${imgIdx===i ? 'var(--accent)' : 'transparent'}`, flexShrink:0
+                }}/>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
+        <div>
+          <div style={{ display:'flex', gap:8, marginBottom:12 }}>
+            <span className="badge badge-yellow">{product.category}</span>
+            {product.game && <span className="badge badge-purple">{product.game}</span>}
+          </div>
+          <h1 style={{ fontFamily:'var(--font-h)', fontWeight:800, fontSize:26, lineHeight:1.2, marginBottom:12 }}>{product.title}</h1>
+          <div style={{ fontFamily:'var(--font-h)', fontWeight:800, fontSize:40, color:'var(--accent)', marginBottom:20 }}>
+            ${parseFloat(product.price).toFixed(2)}
+          </div>
+
+          {seller && (
+            <Link to={`/user/${seller._id||seller.id}`} className="glass" style={{
+              display:'flex', alignItems:'center', gap:12, padding:'14px 16px',
+              borderRadius:16, marginBottom:20, color:'var(--t1)'
+            }}>
+              <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,var(--purple),var(--accent))', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--font-h)', fontWeight:800, fontSize:14 }}>
+                {(seller.username||seller.firstName||'?')[0].toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontWeight:600, fontSize:14 }}>@{seller.username||seller.firstName}</div>
+                <div style={{ fontSize:12, color:'var(--t3)' }}>
+                  <Star size={12} strokeWidth={2} className="icon-animated icon-animated--subtle" style={{marginRight:3}}/>
+                  {parseFloat(seller.rating||5).toFixed(1)} · {seller.totalSales||0} продаж
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {!isMine && product.status==='active' && (
+            <div className="glass glass-strong" style={{ marginBottom:16, borderRadius:18, padding:16 }}>
+              <button className="btn btn-primary btn-full" onClick={buy} disabled={buying} style={{ padding:'16px', fontSize:16, marginBottom:10, borderRadius:16 }}>
+                {buying ? 'Создание сделки...' : `Купить за $${product.price}`}
+              </button>
+              <div style={{ display:'flex', gap:10, alignItems:'flex-start', fontSize:12, color:'var(--t3)', lineHeight:1.6 }}>
+                <ShieldCheck size={14} strokeWidth={1.75} className="icon-animated icon-animated--subtle" style={{ marginTop:2, color:'var(--accent)' }}/>
+                <span>Средства заморожены до подтверждения. Если товар не соответствует — откройте спор.</span>
+              </div>
+            </div>
+          )}
+          {!isMine && seller && (
+            <Link
+              to={`/messages/${seller._id||seller.id}`}
+              className="btn btn-secondary btn-full"
+              style={{ marginBottom:10, fontSize:14, borderRadius:16 }}
+            >
+              💬 Написать продавцу
+            </Link>
+          )}
+          {isMine && <div className="badge badge-yellow" style={{ marginBottom:16 }}>Ваш товар</div>}
+          {product.status!=='active' && !isMine && <div className="badge badge-red" style={{ marginBottom:16 }}>Товар недоступен</div>}
+
+          <div style={{ display:'flex', gap:16, color:'var(--t4)', fontSize:12 }}>
+            <span><Eye size={13} strokeWidth={1.75} className="icon-animated icon-animated--subtle" style={{marginRight:4}}/>{product.views||0} просмотров</span>
+            <span><Heart size={13} strokeWidth={1.75} className="icon-animated icon-animated--subtle" style={{marginRight:4}}/>{product.favorites||0} в избранном</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop:32 }}>
+        <h2 style={{ fontFamily:'var(--font-h)', fontWeight:700, fontSize:20, marginBottom:16 }}>Описание</h2>
+        <div className="glass" style={{ borderRadius:18, padding:24 }}>
+          <pre style={{ fontSize:14, lineHeight:1.8, color:'var(--t2)', whiteSpace:'pre-wrap', fontFamily:'var(--font-b)' }}>{product.description}</pre>
+        </div>
+      </div>
+
+      {product.tags?.length > 0 && (
+        <div style={{ marginTop:20, display:'flex', gap:8, flexWrap:'wrap' }}>
+          {product.tags.map(t => <span key={t} className="chip" style={{ padding:'6px 10px', fontSize:12, fontFamily:'var(--font-h)', fontWeight:800 }}>#{t}</span>)}
+        </div>
+      )}
+    </div>
+  )
+}

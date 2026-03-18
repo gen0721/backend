@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#0d0d14"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="apple-mobile-web-app-title" content="Minions Market"/>
+    <meta name="application-name" content="Minions Market"/>
+    <meta name="msapplication-TileColor" content="#0d0d14"/>
+    <meta name="msapplication-config" content="/browserconfig.xml"/>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json"/>
+    
+    <!-- Apple Icons -->
+    <link rel="apple-touch-icon" sizes="72x72" href="/icon-72x72.png"/>
+    <link rel="apple-touch-icon" sizes="96x96" href="/icon-96x96.png"/>
+    <link rel="apple-touch-icon" sizes="128x128" href="/icon-128x128.png"/>
+    <link rel="apple-touch-icon" sizes="144x144" href="/icon-144x144.png"/>
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon-152x152.png"/>
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192x192.png"/>
+    <link rel="apple-touch-icon" sizes="384x384" href="/icon-384x384.png"/>
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512x512.png"/>
+
+    <!-- Standard Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-32x32.png"/>
+    <link rel="icon" type="image/png" sizes="16x16" href="/icon-16x16.png"/>
+    <link rel="shortcut icon" href="/favicon.ico"/>
+
+    <!-- Дефолтные мета-теги (перезаписываются на каждой странице) -->
+    <title>Minions Market — Безопасный маркетплейс цифровых товаров</title>
+    <meta name="description" content="Minions Market — безопасный маркетплейс игровых аккаунтов, валюты и предметов. Сделки через гарант, защита покупателя и продавца."/>
+    <meta name="keywords" content="маркетплейс игровых товаров, купить игровой аккаунт, продать аккаунт, игровая валюта, скины, буст, безопасные сделки"/>
+    <meta name="robots" content="index, follow"/>
+    <meta name="author" content="Minions Market"/>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Minions Market"/>
+    <meta property="og:title" content="Minions Market — Безопасный маркетплейс цифровых товаров"/>
+    <meta property="og:description" content="Покупай и продавай игровые аккаунты, валюту и предметы безопасно. Гарантированные сделки через эскроу."/>
+    <meta property="og:url" content="https://mini2-production-c524.up.railway.app"/>
+    <meta property="og:locale" content="ru_RU"/>
+
+    <!-- Yandex verification -->
+    <meta name="yandex-verification" content="6ad530c6b0deaddf"/>
+
+    <!-- Google Search Console verification -->
+    <meta name="google-site-verification" content="RyBoJpHVFB2YwEg5MPCScAgRZdCPv30uQOKg9U4V4Og"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
